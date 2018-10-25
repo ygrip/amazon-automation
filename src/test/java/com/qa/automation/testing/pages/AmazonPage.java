@@ -7,6 +7,7 @@ import net.serenitybdd.core.pages.PageObject;
 import net.serenitybdd.core.pages.WebElementFacade;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.Select;
 import org.springframework.stereotype.Component;
 
@@ -82,11 +83,13 @@ public class AmazonPage extends PageObject {
 
         ((JavascriptExecutor) this.getDriver()).executeScript("window.scrollTo(0,0);");
 
+        this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         withAction().moveToElement(sorter).click()
                 .moveToElement(sorter.then().find(By.xpath("//option"))).perform();
-        
+
         this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         Select selectOption = new Select(sorter);
+
         selectOption.selectByVisibleText(sortOption);
         this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
     }
@@ -97,14 +100,15 @@ public class AmazonPage extends PageObject {
         List<WebElementFacade> listProductResult = findAll(By.xpath(locator));
         List<ProductDetails> result = new ArrayList<>();
 
-        for (WebElementFacade item : listProductResult) {
+        for (int i = 0; i< listProductResult.size(); i++) {
+            WebElementFacade item = listProductResult.get(i);
             ((JavascriptExecutor) this.getDriver()).executeScript("arguments[0].scrollIntoView(true);", item);
             this.getDriver().manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
 
             ProductDetails productDetails = new ProductDetails();
-            String code = item.then().find(By.xpath("..//..//..//..")).getAttribute("data-asin");
+            String code = item.findElement(By.xpath("..//..//..//..")).getAttribute("data-asin");
             productDetails.setCode(code);
-            WebElementFacade title = item.then().find(By.xpath("//div[contains(@class,'a-row')]//div[contains(@class,'a-row')]/*[descendant::h2]//a"));
+            WebElement title = item.findElement(By.xpath("//div[contains(@class,'a-row')]//div[contains(@class,'a-row')]/*[descendant::h2]//a"));
             productDetails.setElement(title);
             String name = title.getAttribute("title");
             productDetails.setName(name);
@@ -182,7 +186,7 @@ public class AmazonPage extends PageObject {
     public void selectFirstItemFromSearchResult() {
         ResponseData responseData = ResponseData.getInstance();
         if (!responseData.getProductDetailsList().isEmpty()) {
-            WebElementFacade product = responseData.getProductDetailsList().get(0).getElement();
+            WebElement product = responseData.getProductDetailsList().get(0).getElement();
 
             ((JavascriptExecutor) this.getDriver()).executeScript("arguments[0].scrollIntoView(true);", product);
 
@@ -196,7 +200,7 @@ public class AmazonPage extends PageObject {
 
         ((JavascriptExecutor) this.getDriver()).executeScript("arguments[0].scrollIntoView(true);", btnAddToList);
 
-        withAction().moveToElement(btnAddToList).doubleClick();
+        withAction().moveToElement(btnAddToList).doubleClick().perform();
         this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
     }
 

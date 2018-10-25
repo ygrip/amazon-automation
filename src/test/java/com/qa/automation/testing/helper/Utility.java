@@ -38,7 +38,7 @@ public class Utility {
         List<ProductDetails> result = new ArrayList<>();
 
         for (ProductDetails item : productDetailsList) {
-            if (item.getPrice() < treshold && item.getModelYear().equals(year)) {
+            if (item.getPrice() <= treshold && item.getModelYear().equals(year)) {
                 result.add(item);
             }
         }

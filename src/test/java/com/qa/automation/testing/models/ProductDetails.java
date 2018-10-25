@@ -1,6 +1,7 @@
 package com.qa.automation.testing.models;
 
 import net.serenitybdd.core.pages.WebElementFacade;
+import org.openqa.selenium.WebElement;
 
 public class ProductDetails {
     private String name;
@@ -8,17 +9,17 @@ public class ProductDetails {
     private String modelYear;
     private String url;
     private String code;
-    private WebElementFacade element;
+    private WebElement element;
 
     public ProductDetails() {
 
     }
 
-    public WebElementFacade getElement() {
+    public WebElement getElement() {
         return element;
     }
 
-    public void setElement(WebElementFacade element) {
+    public void setElement(WebElement element) {
         this.element = element;
     }
 
