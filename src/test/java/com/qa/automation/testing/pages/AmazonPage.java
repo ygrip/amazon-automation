@@ -90,8 +90,8 @@ public class AmazonPage extends PageObject {
         this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
         Select selectOption = new Select(sorter);
 
-        selectOption.selectByVisibleText(sortOption);
         this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+        selectOption.selectByVisibleText(sortOption);
     }
 
     public void populateSearchResult() {
@@ -101,37 +101,40 @@ public class AmazonPage extends PageObject {
         List<ProductDetails> result = new ArrayList<>();
 
         for (int i = 0; i< listProductResult.size(); i++) {
-            WebElementFacade item = listProductResult.get(i);
-            ((JavascriptExecutor) this.getDriver()).executeScript("arguments[0].scrollIntoView(true);", item);
-            this.getDriver().manage().timeouts().implicitlyWait(3, TimeUnit.SECONDS);
+            ((JavascriptExecutor) this.getDriver()).executeScript("arguments[0].scrollIntoView(true);", listProductResult.get(i));
+            this.getDriver().manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
 
             ProductDetails productDetails = new ProductDetails();
-            String code = item.findElement(By.xpath("..//..//..//..")).getAttribute("data-asin");
+            String code = listProductResult.get(i).findElement(By.xpath("..//..//..//..")).getAttribute("data-asin");
             productDetails.setCode(code);
-            WebElement title = item.findElement(By.xpath("//div[contains(@class,'a-row')]//div[contains(@class,'a-row')]/*[descendant::h2]//a"));
+            WebElement title = listProductResult.get(i).findElement(By.className("s-access-detail-page"));
             productDetails.setElement(title);
             String name = title.getAttribute("title");
             productDetails.setName(name);
             String url = title.getAttribute("href");
             productDetails.setUrl(url);
-            WebElementFacade whole = item.then().find(By.xpath("//span[contains(@class,'sx-price-whole')]"));
+            String rawPrice = listProductResult.get(i).findElement(By.className("a-color-base")).getText();
+            rawPrice = rawPrice.replace("$","");
             Double wholePrice = 0.0;
-            if (whole.isCurrentlyVisible()) {
-                wholePrice = Double.valueOf(whole.getText());
-            }
-            WebElementFacade fract = item.then().find(By.xpath("//sup[contains(@class,'sx-price-fractional')]"));
             Double fractional = 0.0;
-            if (fract.isCurrentlyVisible()) {
-                fractional = Double.valueOf(fract.getText());
+            String[] compositePrice = rawPrice.split(" ");
+            if(compositePrice.length==1){
+                wholePrice = Double.valueOf(compositePrice[0]);
+            }else if(compositePrice.length==2){
+                wholePrice = Double.valueOf(compositePrice[0]);
+                fractional = Double.valueOf(compositePrice[1]);
+            }else{
+                wholePrice = Double.valueOf(compositePrice[1]);
+                fractional = Double.valueOf(compositePrice[2]);
             }
             Double price = wholePrice + (fractional * 0.01);
             productDetails.setPrice(price);
-            List<WebElementFacade> infos = item.thenFindAll(By.cssSelector("dl.a-definition-list > li > span > span.a-letter-space"));
+            List<WebElementFacade> infos = listProductResult.get(i).find(By.tagName("dl")).thenFindAll(By.cssSelector(".a-letter-space"));
             Map<String, String> mappedInfo = new HashMap<>();
 
             for (WebElementFacade info : infos) {
-                String key = info.then().findElement(By.xpath("//preceding-sibling::span")).getText();
-                String value = info.then().findElement(By.xpath("//following-sibling::span")).getText();
+                String key = info.find(By.xpath("..//..")).thenFindAll(By.cssSelector("span > span")).get(0).getText();
+                String value = info.find(By.xpath("..//..")).thenFindAll(By.cssSelector("span > span")).get(2).getText();
                 mappedInfo.put(key, value);
             }
 
@@ -161,8 +164,8 @@ public class AmazonPage extends PageObject {
         for (int i = 0; i < result.size(); i++) {
             Map<String, Object> item = result.get(i);
             System.out.print((i + 1) + ".");
-            System.out.println(" Product Name : \t" + item.get("name"));
-            System.out.println("\t Product Price : \t$" + item.get("price"));
+            System.out.println("  Product Name : \t" + item.get("name"));
+            System.out.println("\tProduct Price : \t$" + item.get("price"));
         }
         return result;
     }
@@ -174,11 +177,11 @@ public class AmazonPage extends PageObject {
         for (int i = 0; i < result.size(); i++) {
             ProductDetails item = result.get(i);
             System.out.print((i + 1) + ".");
-            System.out.println(" Product Code : \t" + item.getCode());
-            System.out.println("\t Product Name : \t$" + item.getName());
-            System.out.println("\t Product Price : \t$" + item.getPrice());
-            System.out.println("\t Product Model Year : \t$" + item.getModelYear());
-            System.out.println("\t Product Url : \t$" + item.getUrl());
+            System.out.println("  Product Code \t: \t" + item.getCode());
+            System.out.println("\tProduct Name \t: \t" + item.getName());
+            System.out.println("\tProduct Price \t: \t$" + item.getPrice());
+            System.out.println("\tProduct Model Year : \t" + item.getModelYear());
+            System.out.println("\tProduct Url \t: \t" + item.getUrl());
         }
         return result;
     }
@@ -224,5 +227,7 @@ public class AmazonPage extends PageObject {
         ((JavascriptExecutor) this.getDriver()).executeScript("arguments[0].scrollIntoView(true);", btnLogin);
 
         withAction().moveToElement(btnLogin).click().perform();
+        this.getDriver().manage().timeouts().implicitlyWait(5,TimeUnit.SECONDS);
+        this.getDriver().close();
     }
 }
